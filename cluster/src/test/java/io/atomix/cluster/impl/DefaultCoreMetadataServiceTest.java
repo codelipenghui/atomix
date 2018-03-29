@@ -20,7 +20,7 @@ import io.atomix.cluster.ClusterMetadata;
 import io.atomix.cluster.ClusterMetadataEvent;
 import io.atomix.cluster.ClusterMetadataEventListener;
 import io.atomix.cluster.ClusterMetadataService;
-import io.atomix.cluster.ManagedClusterMetadataService;
+import io.atomix.cluster.ManagedCoreMetadataService;
 import io.atomix.cluster.Node;
 import io.atomix.cluster.messaging.impl.TestMessagingServiceFactory;
 import io.atomix.messaging.Endpoint;
@@ -40,10 +40,10 @@ import static org.junit.Assert.assertEquals;
 /**
  * Default cluster metadata service test.
  */
-public class DefaultClusterMetadataServiceTest {
+public class DefaultCoreMetadataServiceTest {
   private final InetAddress localhost;
 
-  public DefaultClusterMetadataServiceTest() {
+  public DefaultCoreMetadataServiceTest() {
     try {
       localhost = InetAddress.getByName("127.0.0.1");
     } catch (UnknownHostException e) {
@@ -58,20 +58,20 @@ public class DefaultClusterMetadataServiceTest {
     ClusterMetadata clusterMetadata = buildClusterMetadata(1);
 
     Node localNode1 = buildNode(1, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService1 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService1 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode1.endpoint()).start().join());
 
     metadataService1.start().join();
 
-    assertEquals(1, metadataService1.getMetadata().bootstrapNodes().size());
+    assertEquals(1, metadataService1.getMetadata().nodes().size());
 
     Node localNode2 = buildNode(2, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService2 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService2 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode2.endpoint()).start().join());
     metadataService2.start().join();
     metadataService2.addNode(localNode2);
 
-    assertEquals(2, metadataService2.getMetadata().bootstrapNodes().size());
+    assertEquals(2, metadataService2.getMetadata().nodes().size());
   }
 
   @Test
@@ -81,15 +81,15 @@ public class DefaultClusterMetadataServiceTest {
     ClusterMetadata clusterMetadata = buildClusterMetadata(1, 2, 3);
 
     Node localNode1 = buildNode(1, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService1 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService1 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode1.endpoint()).start().join());
 
     Node localNode2 = buildNode(2, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService2 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService2 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode2.endpoint()).start().join());
 
     Node localNode3 = buildNode(3, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService3 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService3 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode3.endpoint()).start().join());
 
     List<CompletableFuture<ClusterMetadataService>> futures = new ArrayList<>();
@@ -98,16 +98,16 @@ public class DefaultClusterMetadataServiceTest {
     futures.add(metadataService3.start());
     Futures.allOf(futures).join();
 
-    assertEquals(3, metadataService1.getMetadata().bootstrapNodes().size());
-    assertEquals(3, metadataService2.getMetadata().bootstrapNodes().size());
-    assertEquals(3, metadataService3.getMetadata().bootstrapNodes().size());
+    assertEquals(3, metadataService1.getMetadata().nodes().size());
+    assertEquals(3, metadataService2.getMetadata().nodes().size());
+    assertEquals(3, metadataService3.getMetadata().nodes().size());
 
     Node localNode4 = buildNode(4, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService4 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService4 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode4.endpoint()).start().join());
     metadataService4.start().join();
 
-    assertEquals(3, metadataService4.getMetadata().bootstrapNodes().size());
+    assertEquals(3, metadataService4.getMetadata().nodes().size());
 
     TestClusterMetadataEventListener localEventListener = new TestClusterMetadataEventListener();
     metadataService4.addListener(localEventListener);
@@ -120,23 +120,23 @@ public class DefaultClusterMetadataServiceTest {
     metadataService3.addListener(remoteEventListener3);
 
     metadataService4.addNode(localNode4);
-    assertEquals(4, metadataService4.getMetadata().bootstrapNodes().size());
-    assertEquals(4, localEventListener.event().subject().bootstrapNodes().size());
+    assertEquals(4, metadataService4.getMetadata().nodes().size());
+    assertEquals(4, localEventListener.event().subject().nodes().size());
 
-    assertEquals(4, remoteEventListener1.event().subject().bootstrapNodes().size());
-    assertEquals(4, metadataService1.getMetadata().bootstrapNodes().size());
+    assertEquals(4, remoteEventListener1.event().subject().nodes().size());
+    assertEquals(4, metadataService1.getMetadata().nodes().size());
 
-    assertEquals(4, remoteEventListener2.event().subject().bootstrapNodes().size());
-    assertEquals(4, metadataService2.getMetadata().bootstrapNodes().size());
+    assertEquals(4, remoteEventListener2.event().subject().nodes().size());
+    assertEquals(4, metadataService2.getMetadata().nodes().size());
 
-    assertEquals(4, remoteEventListener3.event().subject().bootstrapNodes().size());
-    assertEquals(4, metadataService3.getMetadata().bootstrapNodes().size());
+    assertEquals(4, remoteEventListener3.event().subject().nodes().size());
+    assertEquals(4, metadataService3.getMetadata().nodes().size());
 
     Node localNode5 = buildNode(5, Node.Type.CORE);
-    ManagedClusterMetadataService metadataService5 = new DefaultClusterMetadataService(
+    ManagedCoreMetadataService metadataService5 = new DefaultCoreMetadataService(
         clusterMetadata, messagingServiceFactory.newMessagingService(localNode5.endpoint()).start().join());
     metadataService5.start().join();
-    assertEquals(4, metadataService5.getMetadata().bootstrapNodes().size());
+    assertEquals(4, metadataService5.getMetadata().nodes().size());
   }
 
   private Node buildNode(int nodeId, Node.Type type) {
@@ -154,7 +154,7 @@ public class DefaultClusterMetadataServiceTest {
           .withEndpoint(new Endpoint(localhost, bootstrapNode))
           .build());
     }
-    return ClusterMetadata.builder().withBootstrapNodes(bootstrap).build();
+    return ClusterMetadata.builder().withNodes(bootstrap).build();
   }
 
   private static class TestClusterMetadataEventListener implements ClusterMetadataEventListener {
