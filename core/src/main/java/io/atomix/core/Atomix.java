@@ -251,7 +251,7 @@ public class Atomix implements PrimitivesService, Managed<Atomix> {
                 clusterService,
                 clusterMessagingService,
                 primitiveTypes,
-                new HashBasedPrimaryElectionService(clusterService),
+                new HashBasedPrimaryElectionService(clusterService, clusterMessagingService),
                 new DefaultSessionIdService())),
             context)
         .thenComposeAsync(v -> {
